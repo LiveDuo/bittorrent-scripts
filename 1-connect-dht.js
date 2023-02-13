@@ -8,6 +8,7 @@ const udp = dgram.createSocket('udp4')
 const nodeId = crypto.randomBytes(20)
 
 const bootstrapNode = {host: 'router.bittorrent.com', port: 6881}
+
 const magnetId = '-- ENTER MAGNET ID --'
 
 let response = {}
@@ -35,8 +36,7 @@ const queryResponse = async (type, message, rinfo) => {
   if (type === 'r' && !(message.r && message.r.id)) return
   else if (type === 'e' && !message.e) return
   else if (type === 'r') {
-    // const peerId = message.r.id.toString('hex')
-    console.log('Receive', {address: rinfo.address, port: rinfo.port})
+    console.log('received:', {address: rinfo.address, port: rinfo.port})
   } else if (type === 'e') {
     console.log('something went wrong')
   }
@@ -60,9 +60,9 @@ const queryResponse = async (type, message, rinfo) => {
     console.log(`sending "get_peers" (hash=${magnetId.slice(0, 4)}...${magnetId.slice(-4)}) to ${bootstrapNode.host}`)
     const response = await queryOutgoing('get_peers', { info_hash: Buffer.from(magnetId, 'hex') }, bootstrapNode.host, bootstrapNode.port)
     if (response?.values) {
-      console.log('Nodes:', response.values.map(v => ({...getIpPortFromBuffer(v), path: parentIds.concat([{id: response.id.toString('hex'), address, port}])})))
+      console.log('nodes:', response.values.map(v => ({...getIpPortFromBuffer(v), path: parentIds.concat([{id: response.id.toString('hex'), address, port}])})))
     } else if (response?.nodes) {
-      console.log('Values:', splitBuffer(response.nodes, 26).map((c) => getIpPortFromBuffer(c.subarray(20, 26))))
+      console.log('values:', splitBuffer(response.nodes, 26).map((c) => getIpPortFromBuffer(c.subarray(20, 26))))
     }
     
   })

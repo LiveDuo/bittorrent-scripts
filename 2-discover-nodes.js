@@ -7,7 +7,7 @@ const {decode, encode} = require('bencode')
 const udp = dgram.createSocket('udp4')
 const nodeId = crypto.randomBytes(20)
 
-const bootstrapLocs = [{host: 'router.bittorrent.com', port: 6881}, {host: 'router.utorrent.com', port: 6881}]
+const bootstrapNodes = [{host: 'router.bittorrent.com', port: 6881}, {host: 'router.utorrent.com', port: 6881}]
 
 const magnetId = '-- ENTER MAGNET ID --'
 
@@ -65,7 +65,7 @@ const queryResponse = async (type, message, rinfo) => {
     const peerId = message.r.id.toString('hex')
     peers[peerId] = {address: rinfo.address, port: rinfo.port}
   } else if (type === 'e') {
-    // something went wrong
+    console.log('something went wrong')
   }
   
 }
@@ -101,14 +101,14 @@ const getPeers = async (address, port, magnetId, parentIds = []) => {
     console.log()
     
     // get bootlocs
-    console.log(`booting from =>  ${bootstrapLocs[0].host}`)
+    console.log(`booting from =>  ${bootstrapNodes[0].host}`)
     console.log(`node id => ${nodeId.toString('hex')}`)
     console.log(`magnet id => ${magnetId}`)
     console.log()
 
     // find magnet peers
     console.log('closest to magnet =>')
-    const bootstrapPeers = bootstrapLocs.map((l) => getPeers(l.host, l.port, magnetId))
+    const bootstrapPeers = bootstrapNodes.map((l) => getPeers(l.host, l.port, magnetId))
     const peersFound = await Promise.all(Array(2).fill().map(() => bootstrapPeers).flat()) // replication = 2
     console.log(`Found ${[...new Set(peersFound)].flat().length} peers`)
     console.log()

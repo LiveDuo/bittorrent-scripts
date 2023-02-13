@@ -46,7 +46,6 @@ const queryResponse = async (type, message, rinfo) => {
   
 }
 
-// main 
 ;(async () => {
 
   udp.bind(6881)

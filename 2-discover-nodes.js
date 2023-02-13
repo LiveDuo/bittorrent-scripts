@@ -7,36 +7,26 @@ const {decode, encode} = require('bencode')
 const udp = dgram.createSocket('udp4')
 const nodeId = crypto.randomBytes(20)
 
-// params
 const bootstrapLocs = [{host: 'router.bittorrent.com', port: 6881}, {host: 'router.utorrent.com', port: 6881}]
+
 const magnetId = '-- ENTER MAGNET ID --'
 
-// variables
 const peers = {}
 const queries = {}
-// const visitedPeers = {}
 
 let tCount = 0 // transaction id counter
 
 
-// utils
 const intToBuffer = (d) => Buffer.from(d.toString(16).padStart(4, '0'), 'hex')
 const bufferToInt = (b) =>  parseInt(b.toString('hex'), 16)
 const splitBuffer = (b, n) => Array.from({length: b.length / n}).map((_, i) => b.subarray(n * i, n * (i + 1)))
 
-// loc parsing
-const getBufferFromIpPort = (address, port) => {
-  const addressBuffer = Buffer.from(address.split('.').map((d) => parseInt(d)))
-  const portBuffer = Buffer.from(Number(port).toString(16).padStart(4, '0'), 'hex')
-  return Buffer.concat([addressBuffer, portBuffer])
-}
 const getIpPortFromBuffer = (buffer) => {
   const address = buffer.slice(0, 4).join('.')
   const port = parseInt(buffer.slice(4).toString('hex'), 16)
   return { address, port }
 }
 
-// queries
 const queryOutgoing = async (query, args, address, port) => {
   
   // save pending query
@@ -56,6 +46,7 @@ const queryOutgoing = async (query, args, address, port) => {
 
   return queries[t].r
 }
+
 const queryResponse = async (type, message, rinfo) => {
   
   // check incorrect types
@@ -80,9 +71,6 @@ const queryResponse = async (type, message, rinfo) => {
 }
 
 const getPeers = async (address, port, magnetId, parentIds = []) => {
-  // const id = `${address}:${port}`
-  // if (visitedPeers[id]) return []
-  // visitedPeers[id] = true
 
   const response = await queryOutgoing('get_peers', { info_hash: Buffer.from(magnetId, 'hex') }, address, port)
   if (response?.values) {
@@ -102,7 +90,6 @@ const getPeers = async (address, port, magnetId, parentIds = []) => {
   }
 }
 
-// main 
 ;(async () => {
 
   udp.bind(6881)
@@ -126,7 +113,6 @@ const getPeers = async (address, port, magnetId, parentIds = []) => {
     console.log(`Found ${[...new Set(peersFound)].flat().length} peers`)
     console.log()
     
-    // console.log([...new Set(peersFound.flat())].map((v) => `${v.address}:${v.port} - ${v.path.map((v) => `${v.id.slice(0, 6)}...${v.id.slice(-6)}:${v.address}:${v.port}`).join(', ')}`))
   })
   
   udp.on('message', async (message, rinfo) => {
